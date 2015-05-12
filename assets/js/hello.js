@@ -15,10 +15,7 @@ $(document).ready(function () {
         draggable: false,
         modal: true,
         title: 'Connect to XMPP',
-
-
-
-buttons: {
+        buttons: {
             "connect": function () {
                 $(document).trigger('connect', {
                     jid: $('#jid').val(),
