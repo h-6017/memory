@@ -30,7 +30,8 @@ var Hello = {
         console.log("Pong recieved");
         var elapsed = (new Date()).getTime() - Hello.start_time;
         Hello.log("Recieved pong from server in " + elapsed + "ms.");
-        $(Hello.pong_list).append(elapsed);
+        Hello.pong_list.push(elapsed);
+        Hello.start_time = null;
         $(document).trigger('pong_handled');
     }
 
@@ -79,24 +80,23 @@ $(document).bind('pong_handled', function () {
         for(i = 0; Hello.pong_list[i]; i++) {
             Hello.response_total = Hello.response_total + i;
             console.log(Hello.response_total);
-        };
+        }
         var avg_ping_response = (Hello.response_total/pong_count);
         Hello.log(avg_ping_response);
         $(document).trigger('avg_calculated');
     } else {
         console.log("Not enough pings yet");
-        return false;
-    };
+    }
 });
 
 $(document).bind('connected', function () {
     //Inform the user
     Hello.log("connection established");
 
-    Hello.connection.addHandler(Hello.handle_pong, null, "iq", null, "ping1");
 
     var domain = Strophe.getDomainFromJid(Hello.connection.jid);
     for(i = 0;i < 10; i++) {
+        Hello.connection.addHandler(Hello.handle_pong, null, "iq", null, "ping1");
         console.log("Sending ping in approx. 1.5 min");
         setTimeout(Hello.send_ping(domain), 65000);
         console.log("Sending ping " + (i + 1) + " out... waiting for response");
@@ -107,7 +107,6 @@ $(document).bind('avg_calculated', function () {
     Hello.log("Thanks for your time. Please have a nice day");
     Hello.connection.disconnect();
     $(document).trigger('disconnected');
-    return false;
 });
 
 $(document).bind('disconnected', function () {
