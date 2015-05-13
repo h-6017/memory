@@ -78,11 +78,11 @@ $(document).bind('pong_handled', function () {
 
     if(pong_count == 10) {
         for(i = 0; Hello.pong_list[i]; i++) {
-            Hello.response_total = Hello.response_total + i;
+            Hello.response_total = Hello.response_total + Hello.pong_list[i];
             console.log(Hello.response_total);
         }
         var avg_ping_response = (Hello.response_total/pong_count);
-        Hello.log(avg_ping_response);
+        Hello.log("The average responce time was: " + avg_ping_response);
         $(document).trigger('avg_calculated');
     } else {
         console.log("Not enough pings yet");
