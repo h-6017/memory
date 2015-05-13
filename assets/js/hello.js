@@ -86,6 +86,7 @@ $(document).bind('pong_handled', function () {
         $(document).trigger('avg_calculated');
     } else {
         console.log("Not enough pings yet");
+        $(document).trigger('not_enough_pings');
     }
 });
 
@@ -95,13 +96,17 @@ $(document).bind('connected', function () {
 
 
     var domain = Strophe.getDomainFromJid(Hello.connection.jid);
-    for(i = 0;i < 10; i++) {
-        Hello.connection.addHandler(Hello.handle_pong, null, "iq", null, "ping1");
-        console.log("Sending ping in approx. 1.5 min");
-        setTimeout(Hello.send_ping(domain), 65000);
-        console.log("Sending ping " + (i + 1) + " out... waiting for response");
-    }
+
+    Hello.connection.addHandler(Hello.handle_pong, null, "iq", null, "ping1");
+
+    setTimeout(Hello.send_ping, 65000, domain);
 });
+
+$(document).bind('not_enough_pings', function () {
+    var domain = Strophe.getDomainFromJid(Hello.connection.jid);
+    Hello.connection.addHandler(Hello.handle_pong, null, "iq", null, "ping1");
+    setTimeout(Hello.send_ping, 65000, domain);
+}
 
 $(document).bind('avg_calculated', function () {
     Hello.log("Thanks for your time. Please have a nice day");
