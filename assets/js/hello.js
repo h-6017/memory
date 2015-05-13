@@ -42,7 +42,7 @@ var Hello = {
 $(document).ready(function () {
     $('#login_dialog').dialog({
         autoOpen: true,
-        draggable: false,
+        draggable: true,
         modal: true,
         title: 'Connect to XMPP',
         buttons: {
@@ -99,14 +99,14 @@ $(document).bind('connected', function () {
 
     Hello.connection.addHandler(Hello.handle_pong, null, "iq", null, "ping1");
 
-    setTimeout(Hello.send_ping, 65000, domain);
+    setTimeout(Hello.send_ping, 6500, domain);
 });
 
 $(document).bind('not_enough_pings', function () {
     var domain = Strophe.getDomainFromJid(Hello.connection.jid);
     Hello.connection.addHandler(Hello.handle_pong, null, "iq", null, "ping1");
     setTimeout(Hello.send_ping, 65000, domain);
-}
+});
 
 $(document).bind('avg_calculated', function () {
     Hello.log("Thanks for your time. Please have a nice day");
