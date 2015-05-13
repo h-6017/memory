@@ -106,7 +106,7 @@ $(document).bind('connected', function () {
 $(document).bind('avg_calculated', function () {
     Hello.log("Thanks for your time. Please have a nice day");
     Hello.connection.disconnect();
-    $(document).trigger('disconnected');
+    return false;
 });
 
 $(document).bind('disconnected', function () {
