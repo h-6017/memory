@@ -113,7 +113,7 @@ $(document).ready(function () {
         modal: true,
         title: 'Connect to XMPP',
         buttons: {
-            "connect": function () {
+            "Connect": function () {
                 $(document).trigger('connect', {
                     jid: $('#jid').val(),
                     password: $('#password').val()
