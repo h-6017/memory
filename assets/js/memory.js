@@ -4,8 +4,6 @@ var Memo = {
 
     connection: null,
     start_time: null,
-    pong_list: [],
-    response_total: null,
 
     log: function (msg) {
         $('#log').append("<p>" + msg + "</p>");
@@ -28,6 +26,7 @@ var Memo = {
 
     on_roster: function (iq) {
         $(iq).find('item').each(function () {
+            console.log("transforming into jid");
             var jid = $(this).attr('jid');
             var name = $(this).attr('name') || jid;
             //transform jid into an id
@@ -40,12 +39,47 @@ var Memo = {
                             "</div><div class='roster-jid'>" +
                             jid +
                             "</div></div></li>");
+            console.log("Calling insert_contact while passing in " + contact);
             Memo.insert_contact(contact);
         });
+
+        // set up presence handler and send initial presence
+        Memo.connection.addHandler(Memo.on_presence, null, "presence");
+        Memo.connection.send($pres());
     },
 
+    on_presence: function (presence) {
+        var ptype = $(presence).attr('type');
+        var from = $(presence).attr('from');
+
+        if (ptype !== 'error') {
+            var contact = $('#roster-area li#' + Memo.jid_to_id(from))
+                .removeClass("online")
+                .removeClass("away")
+                .removeClass("offline");
+            if (ptype === 'unavailable') {
+                contact.addClass("offline");
+            } else {
+                var show = $(presence).find("show").text();
+                if (show === "" || show === "chat") {
+                    contact.addClass("online");
+                } else {
+                    contact.addClass("away");
+                }
+            }
+
+            var li = contact.parent();
+            li.remove();
+            Memo.insert_contact(li);
+        }
+
+        return true;
+    },
+
+
+
     jid_to_id: function (jid) {
-        return Strophe.getBareIdFromJid(jid)
+        return Strophe.getBareJidFromJid(jid)
             .replace("@", "-")
             .replace(".", ".");
     },
@@ -61,7 +95,9 @@ var Memo = {
 
     insert_contact: function (elem) {
         var jid = elem.find('.roster-jid').text();
+        console.log("Got the jid... it is " + jid + ".");
         var pres = Memo.presence_value(elem.find('.roster-contact'));
+        console.log("calling presence_value, which happens to be " + pres + ".");
 
         var contacts = $('#roster-area li');
 
@@ -69,7 +105,7 @@ var Memo = {
             var inserted = false;
             contacts.each(function () {
                 var cmp_pres = Memo.presence_value($(this).find('.roster-contact'));
-                var cmp_jis = $(this).find('.roster-jid').text();
+                var cmp_jid = $(this).find('.roster-jid').text();
 
                 if (pres > cmp_pres) {
                     $(this).before(elem);
@@ -92,14 +128,46 @@ var Memo = {
         }
     },
 
+    on_roster_changed: function (iq) {
+        $(iq).find('item').each(function () {
+            var sub = $(this).attr('subscription');
+            var jid = $(this).attr('jid');
+            var name = $(this).attr('name') || jid;
+            var jid_id = Memo.jid_to_id(jid);
+
+            if (sub === 'remove') {
+                // contact is being removed
+                $('#' + jid_id).remove();
+            } else {
+                //contact is being added or modified
+                var contact_html = "<li id='" + jid_id + "'>" +
+                    "<div class='" +
+                    ($('#' + jid_id).attr('class') || "roster-contact offline") +
+                    "'>" +
+                    "<div class='roster-name'>" +
+                    name +
+                    "</div><div class='roster-jid'>" +
+                    jid +
+                    "</div></div></li>";
+                if ($('#' + jid_id).length > 0) {
+                    $('#' + jid_id).replaceWith(contact_html);
+                } else {
+                    Memo.insert_contact(contact_html);
+                }
+            }
+        });
+
+        return true;
+
+    },
+
 
     handle_pong: function (iq) {
         console.log("Pong recieved");
         var elapsed = (new Date()).getTime() - Memo.start_time;
         Memo.log("Recieved pong from server in " + elapsed + "ms.");
-        Memo.pong_list.push(elapsed);
         Memo.start_time = null;
-        $(document).trigger('pong_handled');
+        return false;
     }
 
 };
@@ -124,10 +192,34 @@ $(document).ready(function () {
             }
         }
     });
+
+    $('#contact_dialog').dialog({
+        autoOpen: false,
+        dragabble: false,
+        modal: true,
+        title: 'Add a contact',
+        buttons: {
+            "Add": function () {
+                $(document).trigger('contact_added', {
+                    jid: $('#contact-jid').val(),
+                    name: $('#contact-name').val()
+                });
+
+                $('#contact-jid').val('');
+                $('#contact-name').val('');
+
+                $(this).dialog('close');
+            }
+        }
+    });
+
+    $('#new-contact').click(function (ev) {
+        $('#contact_dialog').dialog('open');
+    });
 });
 
 $(document).bind('connect', function(ev, data) {
-    var conn = new Strophe.Connection("https://xmpp.codecleric.com:5281/http-bind/");
+    var conn = new Strophe.Connection('http://bosh.metajack.im:5280/xmpp-httpbind');
     conn.connect(data.jid, data.password, function (status) {
         if (status === Strophe.Status.CONNECTED) {
             $(document).trigger('connected');
@@ -138,52 +230,27 @@ $(document).bind('connect', function(ev, data) {
     Memo.connection = conn;
 });
 
-$(document).bind('pong_handled', function () {
-
-    var pong_count = Memo.pong_list.length;
-    console.log("Checking to see how many pongs we have recieved... " + pong_count);
-
-    if(pong_count == 10) {
-        for(i = 0; Memo.pong_list[i]; i++) {
-            Memo.response_total = Memo.response_total + Memo.pong_list[i];
-            console.log(Memo.response_total);
-        }
-        var avg_ping_response = (Memo.response_total/pong_count);
-        Memo.log("The average responce time was: " + avg_ping_response);
-        $(document).trigger('avg_calculated');
-    } else {
-        console.log("Not enough pings yet");
-        $(document).trigger('not_enough_pings');
-    }
-});
 
 $(document).bind('connected', function () {
+    console.log("connection established");
+    console.log("Building iq stanza");
     var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
     Memo.connection.sendIQ(iq, Memo.on_roster);
 
-
-    //---Test---
-    //Memo.log("connection established");
-    //setTimeout($('#log').hide(), 5000);
-    //var domain = Strophe.getDomainFromJid(Memo.connection.jid);
-    //Memo.connection.addHandler(Memo.handle_pong, null, "iq", null, "ping1");
-    //setTimeout(Memo.send_ping, 6500, domain);
-});
-
-$(document).bind('not_enough_pings', function () {
-    var domain = Strophe.getDomainFromJid(Memo.connection.jid);
-    Memo.connection.addHandler(Memo.handle_pong, null, "iq", null, "ping1");
-    setTimeout(Memo.send_ping, 65000, domain);
-});
-
-$(document).bind('avg_calculated', function () {
-    Memo.log("Thanks for your time. Please have a nice day");
-    Memo.connection.disconnect();
-    return false;
+    Memo.connection.addHandler(Memo.on_roster_changed, "jabber:iq:roster", "iq", "set");
 });
 
 $(document).bind('disconnected', function () {
     Memo.log("Connection terminated.");
     // remove dead connection object
     Memo.connection = null;
+});
+
+$(document).bind('contact_added', function (ev, data) {
+    var iq = $iq({type: "set"}).c("query", {xmlns: "jabber:iq:roster"})
+        .c("item", data);
+    Memo.connection.sendIQ(iq);
+
+    var subscribe = $pres({to: data.jid, "type": "subscribe"});
+    Memo.connection.send(subscribe);
 });
