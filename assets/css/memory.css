@@ -1,6 +1,8 @@
 
 body {
     font-family: Helvetica;
+    color: white;
+    background-color: #1E3623; 
 }
 
 h1 {
@@ -92,4 +94,33 @@ h1 {
 
 #log {
     padding: 10px;
+}
+#roster-area {
+    position: absolute;
+    right: 0;
+    top: 50;
+}
+#notes {
+    float: left;
+    width: 80%;
+    display: inline;
+}
+.note {
+    border: 2px solid red;
+    width: 200px;
+    display: inline-block;
+}
+.note .text {
+    font-size: 23px;
+}
+.note .jid {
+    font-size: 6px;
+}
+.note span.note_date {
+    font-size: 8px;
+    font-weight: italic;
+}
+.note h5 {
+    color: orange;
+    font-weight: italic;
 }
