@@ -384,6 +384,7 @@ $(document).ready(function () {
                 var docObj;
                 while(docObj = docs.rows[idx]) {
                     console.log(docObj)
+                    
                     if (!docObj.value._deleted) {
                         Memo.showNote(docObj.doc)
                     }
