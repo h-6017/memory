@@ -395,8 +395,8 @@ $(document).ready(function () {
         var dbid = $(this).attr('dbid');
         var id = dbid.replace('@', '')
         db.get(id).then(function(doc) {
-            var res = db.remove(doc);
-            console.log("deleted", res);
+            return db.remove(doc);
+            console.log("deleted");
             $('#'+id).remove();
             return false;
         })
