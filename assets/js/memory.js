@@ -404,7 +404,7 @@ $(document).ready(function () {
 });
 
 $(document).bind('connect', function(ev, data) {
-    var conn = new Strophe.Connection('http://bosh.metajack.im:5280/xmpp-httpbind');
+    var conn = new Strophe.Connection('https://xmpp.codecleric.com:5281/http-bind/');
     conn.connect(data.jid, data.token, function (status) {
         if (status === Strophe.Status.CONNECTED) {
             $(document).trigger('connected');
