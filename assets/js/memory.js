@@ -33,6 +33,7 @@ var Memo = {
             var the_notes = JSON.parse(json_data);
             $(document).trigger('notes-received', the_notes);
         }
+        return true;
     },
 
     showNote: function (doc) {
@@ -69,6 +70,7 @@ var Memo = {
         // set up presence handler and send initial presence
         Memo.connection.addHandler(Memo.on_presence, null, "presence");
         Memo.connection.send($pres());
+        return true;
     },
 
     
