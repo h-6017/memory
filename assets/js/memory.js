@@ -16,17 +16,6 @@ var Memo = {
         var jid = Strophe.getBareJidFromJid($(message).attr('from'));
         var jid_id = Memo.jid_to_id(jid);
 
-        if ($('#chat-' + jid_id).length === 0) {
-            $('#chat-area').tabs('add', '#chat-' + jid_id, jid);
-            $('#chat-' + jid_id).append(
-                "<div class='chat-messages'></div>" +
-                "<input type='text' class='chat-input'>");
-            $('#chat-' + jid_id).data('jid', jid);
-        }
-
-        $('#chat-area').tabs('select', '#chat-' + jid_id);
-        $('#chat-' + jid_id + ' input').focus();
-
         var body = $(message).find("html > body");
 
         if (body.length === 0) {
@@ -39,33 +28,16 @@ var Memo = {
         } else {
             body = body.contents();
         }
-
-        if (body) {
-            // add the new message
-            var aKey = new Date().toISOString()
-            if (body.startsWith("c ")) {
-                // we have a note to save
-                var noteParts = body.slice(2).split("|")
-            }
-            var thisId = aKey + '-' + jid;
-            var theDoc = {
-                _id: thisId, 
-                note: noteParts[1].trim(),
-                title: noteParts[0].trim(),
-                from: jid,
-                date: aKey
-            }
-            if (Memo.db) {
-                Memo.db.put(theDoc);
-
-                Memo.db.get(thisId).then(Memo.showNote);
-            }
+        if (body.startsWith("json ::")) {
+            var json_data = body.slice(8);
+            var the_notes = JSON.parse(json_data);
+            $(document).trigger('notes-received', the_notes);
         }
-
         return true;
-
     },
+
     showNote: function (doc) {
+
         console.log(doc);
         var id = doc._id.replace('@', '')
         var notesDiv = $('<div id='+ id +' class="note"></div>')
@@ -74,12 +46,9 @@ var Memo = {
         notesDiv.append('<p class="jid">'+doc.from+'</h5>')
         notesDiv.append('<span class="note_date">'+doc.date+'</span>')
         $('#notes').append(notesDiv)
+
     },
 
-    scroll_chat: function (jid_id) {
-        var div = $('#chat-' + jid_id + ' .chat-messages').get(0);
-        div.scrollTop = div.scrollHeight;
-    },
 
     on_roster: function (iq) {
         $(iq).find('item').each(function () {
@@ -101,6 +70,7 @@ var Memo = {
         // set up presence handler and send initial presence
         Memo.connection.addHandler(Memo.on_presence, null, "presence");
         Memo.connection.send($pres());
+        return true;
     },
 
     
@@ -296,8 +266,6 @@ $(document).ready(function () {
         }
     });
 
-    $(document).trigger('connect', {jid: jid, token: password});
-
     $('#contact_dialog').dialog({
         autoOpen: false,
         dragabble: false,
@@ -350,22 +318,7 @@ $(document).ready(function () {
     $('#new-contact').click(function (ev) {
         $('#contact_dialog').dialog('open');
     });
-    // Show all the notes
-    var db = new PouchDB("notes")
-    db
-        .allDocs({include_docs: true})
-        .then(
-            function(docs) {
-                idx = 0;
-                var docObj;
-                while(docObj = docs.rows[idx]) {
-                    
-                    if (!docObj.value._deleted) {
-                        Memo.showNote(docObj.doc)
-                    }
-                    idx++;
-                }
-        });
+
     $( "body" ).on('click', '.kill', function(e) {
         var dbid = $(this).attr('dbid');
         var id = dbid.replace('@', '')
@@ -378,9 +331,17 @@ $(document).ready(function () {
     });
 });
 
+$(document).bind('notes-received', function(ev, data) {
+    console.log("Something happened!");
+    for(var i in data['notes']){
+        console.log(i);
+        Memo.showNote(data['notes'][i]);
+    }
+});
+
 $(document).bind('connect', function(ev, data) {
     var conn = new Strophe.Connection('https://xmpp.codecleric.com:5281/http-bind/');
-    conn.connect(data.jid, data.token, function (status) {
+    conn.connect(data.jid, data.password, function (status) {
         if (status === Strophe.Status.CONNECTED) {
             $(document).trigger('connected');
         } else if (status === Strophe.Status.DISCONNECTED) {
@@ -397,12 +358,17 @@ $(document).bind('connected', function () {
 
     Memo.connection.addHandler(Memo.on_roster_changed, "jabber:iq:roster", "iq", "set");
 
-    Memo.db = new PouchDB('notes');
     Memo.connection.addHandler(Memo.on_message, null, "message", "chat");
+
+    console.log("Attempting to request json data...");
+    var msg = $msg({to: "memori@sudopriest.com", type: 'chat'}).c("body").t("json");
+    console.log(msg);
+    Memo.connection.send(msg);
+    console.log();
 });
 
 $(document).bind('disconnected', function () {
-    Memo.log("Connection terminated.");
+    console.log("Connection terminated.");
     // remove dead connection object
     Memo.connection = null;
 });
