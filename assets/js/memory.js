@@ -333,9 +333,9 @@ $(document).ready(function () {
 
 $(document).bind('notes-received', function(ev, data) {
     console.log("Something happened!");
-    for(var note in data['notes']){
-        console.log(note);
-        Memo.showNote(note);
+    for(var i in data['notes']){
+        console.log(i);
+        Memo.showNote(data['notes'][i]);
     }
 });
 
