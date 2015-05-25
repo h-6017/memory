@@ -10,26 +10,13 @@ var Memo = {
         $('#log').append("<p>" + msg + "</p>");
     },
 
-    send_ping: function (to) {
-        console.log("Building ping");
-        var ping = $iq({
-            to: to,
-            type: "get",
-            id: "ping1"}).c("ping", {xmlns: "urn:xmpp:ping"});
 
-        console.log("Sending ping to " + to + ".");
-
-        Memo.log("Sending ping to " + to + ".");
-
-        Memo.start_time = (new Date()).getTime();
-        Memo.connection.send(ping);
-    },
 
     on_message: function (message) {
         var jid = Strophe.getBareJidFromJid($(message).attr('from'));
         var jid_id = Memo.jid_to_id(jid);
 
-        /* if ($('#chat-' + jid_id).length === 0) {
+        if ($('#chat-' + jid_id).length === 0) {
             $('#chat-area').tabs('add', '#chat-' + jid_id, jid);
             $('#chat-' + jid_id).append(
                 "<div class='chat-messages'></div>" +
@@ -39,7 +26,7 @@ var Memo = {
 
         $('#chat-area').tabs('select', '#chat-' + jid_id);
         $('#chat-' + jid_id + ' input').focus();
-        */
+
         var body = $(message).find("html > body");
 
         if (body.length === 0) {
@@ -78,7 +65,6 @@ var Memo = {
         return true;
 
     },
-    token: 'M1n10n',
     showNote: function (doc) {
         console.log(doc);
         var id = doc._id.replace('@', '')
@@ -89,14 +75,14 @@ var Memo = {
         notesDiv.append('<span class="note_date">'+doc.date+'</span>')
         $('#notes').append(notesDiv)
     },
+
     scroll_chat: function (jid_id) {
         var div = $('#chat-' + jid_id + ' .chat-messages').get(0);
         div.scrollTop = div.scrollHeight;
     },
-    id: 'memori@sudopriest.com',
+
     on_roster: function (iq) {
         $(iq).find('item').each(function () {
-            console.log("transforming into jid");
             var jid = $(this).attr('jid');
             var name = $(this).attr('name') || jid;
             //transform jid into an id
@@ -109,7 +95,6 @@ var Memo = {
                             "</div><div class='roster-jid'>" +
                             jid +
                             "</div></div></li>");
-            console.log("Calling insert_contact while passing in " + contact);
             Memo.insert_contact(contact);
         });
 
@@ -174,9 +159,7 @@ var Memo = {
 
     insert_contact: function (elem) {
         var jid = $(elem).find('.roster-jid').text();
-        console.log("Got the jid... it is " + jid + ".");
         var pres = Memo.presence_value($(elem).find('.roster-contact'));
-        console.log("calling presence_value, which happens to be " + pres + ".");
 
         var contacts = $('#roster-area li');
 
@@ -241,20 +224,13 @@ var Memo = {
     },
 
 
-    handle_pong: function (iq) {
-        console.log("Pong recieved");
-        var elapsed = (new Date()).getTime() - Memo.start_time;
-        Memo.log("Recieved pong from server in " + elapsed + "ms.");
-        Memo.start_time = null;
-        return false;
-    }
 
 };
 
 
 
 $(document).ready(function () {
-    //$('#chat-area').tabs().find('ui-tabs-nav').sortable({axis: 'x'});
+    $('#chat-area').tabs().find('ui-tabs-nav').sortable({axis: 'x'});
     
     $('roster-input').on('keypress', function (ev) {
         if (ev.which === 13) {
@@ -281,7 +257,7 @@ $(document).ready(function () {
         }
     });
 
-    /*
+    
     $("body").on('click', '.roster-contact',  function () {
         var jid = $(this).find(".roster-jid").text();
         var name = $(this).find(".roster-name").text();
@@ -319,8 +295,8 @@ $(document).ready(function () {
             }
         }
     });
-    */
-    $(document).trigger('connect', { jid: Memo.id, token: Memo.token });
+
+    $(document).trigger('connect', {jid: jid, token: password});
 
     $('#contact_dialog').dialog({
         autoOpen: false,
@@ -383,7 +359,6 @@ $(document).ready(function () {
                 idx = 0;
                 var docObj;
                 while(docObj = docs.rows[idx]) {
-                    console.log(docObj)
                     
                     if (!docObj.value._deleted) {
                         Memo.showNote(docObj.doc)
@@ -394,10 +369,10 @@ $(document).ready(function () {
     $( "body" ).on('click', '.kill', function(e) {
         var dbid = $(this).attr('dbid');
         var id = dbid.replace('@', '')
-        db.get(id).then(function(doc) {
-            return db.remove(doc);
+        db.get(dbid).then(function(doc) {
+            db.remove(doc);
             console.log("deleted");
-            $('#'+id).remove();
+            $('div[id="'+id+'"]').remove();
             return false;
         })
     });
@@ -417,8 +392,6 @@ $(document).bind('connect', function(ev, data) {
 
 
 $(document).bind('connected', function () {
-    console.log("connection established");
-    console.log("Building iq stanza");
     var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
     Memo.connection.sendIQ(iq, Memo.on_roster);
 
