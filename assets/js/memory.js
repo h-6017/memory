@@ -248,6 +248,26 @@ $(document).ready(function () {
         $( tabId + ' input ').focus();
     });
 
+    $('#add_note').dialog({
+        autoOpen: false,
+        draggable: false,
+        modal: true,
+        title: 'Add a note!',
+        buttons: {
+            "Add Note": function () {
+                $(document).trigger('send-note', {
+                    title: $('#title').val(),
+                    note: $('#note_to_add').val()
+                });
+
+                $('#title').val('');
+                $('#note_to_add').val('');
+                $('this').dialog('close');
+            }
+        }
+    });
+
+
     $('#login_dialog').dialog({
         autoOpen: true,
         draggable: true,
@@ -350,6 +370,14 @@ $(document).bind('connect', function(ev, data) {
     });
     Memo.connection = conn;
 });
+
+$(document).bind('send-note', function (ev, data) {
+    var note_to_store = "c " + data.title + " | " + data.note
+    Memo.connection.addHandler(Memo.on_message, null, "message", "chat");
+    var msg = $msg({to: "memori@sudopriest.com" , type: 'chat'}).c("body").t(note_to_store);
+    Memo.connection.send(msg);
+});
+
 
 
 $(document).bind('connected', function () {
