@@ -29,12 +29,11 @@ body, html {
 #sidebar {
     float: right;
     width: 250px;
-    background: linear-gradient(to right, grey, black);
 }
 
 #footer {
     clear: both;
-    background:#cc9;
+    background: linear-gradient(to left, white, black);
 }
 
 h1 {
@@ -148,16 +147,24 @@ h1 {
 }
 
 #corkboard {
-    top: 100px;
     float: left;
-    height: 900px;
+    height: 1024px;
     width: 500px;
+    overflow-y: auto;
+}
+#nav {
+    background: linear-gradient(to left, white, black);
 }
 
 #nav ul {
     margin: 0;
     padding: 0;
-    list-style:none;
+    list-style: none;
+}
+#sidebar ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
 }
 #nav li {
     display: inline;

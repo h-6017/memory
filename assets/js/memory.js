@@ -33,6 +33,11 @@ var Memo = {
             var the_notes = JSON.parse(json_data);
             $(document).trigger('notes-received', the_notes);
         }
+        if (body.startsWith("Deleted ")) {
+            var sliceLen = "Deleted ".length;
+            var dbid = body.slice(sliceLen)
+            $(document).trigger('notes-deleted-on-server', {dbid: dbid});
+        }
         return true;
     },
 
@@ -45,7 +50,7 @@ var Memo = {
         notesDiv.append('<p class="text">'+doc.note+'</h5>')
         notesDiv.append('<p class="jid">'+doc.from+'</h5>')
         notesDiv.append('<span class="note_date">'+doc.date+'</span>')
-        $('#notes').append(notesDiv)
+        $('#notes').prepend(notesDiv)
 
     },
 
@@ -262,9 +267,20 @@ $(document).ready(function () {
 
                 $('#title').val('');
                 $('#note_to_add').val('');
-                $('this').dialog('close');
+                $(this).dialog('close');
             }
         }
+    });
+
+    $('#add_note_button').click(function (ev) {
+        $('#add_note').dialog('open');
+    });
+
+    $('#delete_notes').click(function (ev) {
+        Memo.connection.addHandler(Memo.on_message, null, "message", "chat");
+        var msg = $msg({to: "memori@sudopriest.com", type: 'chat'}).c("body").t("delete all");
+        Memo.connection.send(msg);
+        $('#notes > div').remove()
     });
 
 
@@ -341,22 +357,23 @@ $(document).ready(function () {
 
     $( "body" ).on('click', '.kill', function(e) {
         var dbid = $(this).attr('dbid');
-        var id = dbid.replace('@', '')
-        db.get(dbid).then(function(doc) {
-            db.remove(doc);
-            console.log("deleted");
-            $('div[id="'+id+'"]').remove();
-            return false;
-        })
+        var msg = $msg({to: "memori@sudopriest.com" , type: 'chat'}).c("body").t("d " + dbid);
+        Memo.connection.send(msg);
     });
 });
 
-$(document).bind('notes-received', function(ev, data) {
+
+$(document).bind('notes-received', function (ev, data) {
     console.log("Something happened!");
     for(var i in data['notes']){
         console.log(i);
         Memo.showNote(data['notes'][i]);
     }
+});
+
+$(document).bind('notes-deleted-on-server', function (ev, data) {
+    console.log("deleted");
+    $('div[id="'+data.dbid+'"]').remove();
 });
 
 $(document).bind('connect', function(ev, data) {
@@ -372,8 +389,7 @@ $(document).bind('connect', function(ev, data) {
 });
 
 $(document).bind('send-note', function (ev, data) {
-    var note_to_store = "c " + data.title + " | " + data.note
-    Memo.connection.addHandler(Memo.on_message, null, "message", "chat");
+    var note_to_store = "cj " + data.title + " | " + data.note
     var msg = $msg({to: "memori@sudopriest.com" , type: 'chat'}).c("body").t(note_to_store);
     Memo.connection.send(msg);
 });
