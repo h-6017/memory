@@ -394,10 +394,10 @@ $(document).ready(function () {
     $( "body" ).on('click', '.kill', function(e) {
         var dbid = $(this).attr('dbid');
         var id = dbid.replace('@', '')
-        db.get(id).then(function(doc) {
-            return db.remove(doc);
-            console.log("deleted");
-            $('#'+id).remove();
+        db.get(dbid).then(function(doc) {
+            var res = db.remove(doc);
+            console.log("deleted", res);
+            $('div[id="'+id+'"]').remove();
             return false;
         })
     });
