@@ -2,59 +2,88 @@
 <html>
     <head>
         <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-        <script src='http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.js'></script>
-        <script src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.js'></script>
-        <link rel='stylesheet' href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/vader/jquery-ui.css'>
-        <link rel='stylesheet' href='assets/css/memory.css'>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.js"></script>
+        <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/vader/jquery-ui.css">
+        <link rel="stylesheet" href="assets/css/memory.css">
 
     </head>
     <body>
-        <img src="assets/img/banner.png" alt="memo..." id="logo">
+        <div id="wrap">
+            <div id="header">
+                <img src="assets/img/banner.png" alt="memo..." id="logo">
+            </div>
 
-        <div id='toolbar'>
+            <div id="nav">
+                <ul>
+                    <li>link goes here</li>
+                    <li>link also goes here</li>
+                </ul>
 
-            <span class='button' id='new-contact'>add contact..</span> ||
-            <span class='button' id='new-contact'>chat with..</span> ||
-            <span class='button' id='new-contact'>disconnect</span> 
 
-        <div id='log'>
-        </div>
+            </div>
 
-        <div id='notes'></div>
+            <div id="main">
+                <div id="corkboard">
+                    <div id="notes"></div>
+                </div>
 
-        <div id='chat-area'>
-            <ul></ul>
-        </div>
+                <div id="chat-area">
+                    <ul></ul>
+                </div>
 
-        <div id='roster-area'>
-            <ul></ul>
-        </div>
+                <div id="roster-area">
+                    <ul></ul>
+                </div>
 
-        <!-- login dialogue -->
-        <div id='login_dialog' class='hidden'>
-            <label>JID:</label><input type='text' id='jid'>
-            <label>Password:</label><input type='password' id='password'>
-        </div>
+                <!-- login dialogue -->
+                <div id="login_dialog" class="hidden">
+                    <label>JID:</label><input type="text" id="jid">
+                    <label>Password:</label><input type="password" id="password">
+                </div>
+                <!-- addNote dialogue -->
+                <div id="add_note" class="hidden">
+                    <label>Title:</label><input type="text" id="title"></input>
+                    <label>Note:</label><textarea type="text" id="note_to_add"></textarea>
+                </div>
 
-        <!-- contact dialogue -->
-        <div id='contact_dialog' class='hidden'>
-            <label>JID:</label><input type='text' id='contact-jid'>
-            <label>Name:</label><input type='text' id='contact-name'>
-        </div>
+                <!-- contact dialogue -->
+                <div id="contact_dialog" class="hidden">
+                    <label>JID:</label><input type="text" id="contact-jid">
+                    <label>Name:</label><input type="text" id="contact-name">
+                </div>
 
-        <!-- chat dialogue -->
-        <div id='chat_dialog' class='hidden'>
-            <label>JID;</label><input type='text' id='chat-jid'>
-        </div>
+                <!-- chat dialogue -->
+                <div id="chat_dialog" class="hidden">
+                    <label>JID;</label><input type="text" id="chat-jid">
+                </div>
 
-        <!-- approval dialog -->
-        <div id='approve_dialog' class='hidden'>
-            <p><span id='approve-jid'></span> has requested a subscription to your presence. Approve or deny?</p>
+                <!-- approval dialog -->
+                <div id="approve_dialog" class="hidden">
+                    <p><span id="approve-jid"></span> has requested a subscription to your presence. Approve or deny?</p>
+                </div>
+            </div>
+
+            <div id="sidebar">
+                <ul>
+                    <li><button id="add_note_button" type="button">Add Note</button></li>
+                    <li><button id="delete_notes" type="button">Delete Notes</button></li>
+                    <li><button type="button">Superfluous button</button></li>
+                    <li><button type="button" id="new-contact">add contact..</button></li> 
+                    <li><button type="button" id="new-contact">chat with..</button></li>
+                    <li><button type="button" id="new-contact">disconnect</button></li>
+                </ul>
+            </div>
+
+            <div id="footer">
+                <p>Footer</p>
+            </div>
+
         </div>
 
     </body>
 
-        <script src='assets/js/memory.js'></script>
+        <script src="assets/js/memory.js"></script>
         <script src="assets/js/strophe.js"></script>
         <script src="assets/js/pouchdb-3.5.0.min.js"></script>
 </html>
