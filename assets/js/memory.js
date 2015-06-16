@@ -277,7 +277,7 @@ $(document).ready(function () {
     });
 
     $('#delete_notes').click(function (ev) {
-        Memo.connection.addHandler(Memo.on_message, null, "message", "chat");
+        //Memo.connection.addHandler(Memo.on_message, null, "message", "chat");
         var msg = $msg({to: "memori@sudopriest.com", type: 'chat'}).c("body").t("delete all");
         Memo.connection.send(msg);
         $('#notes > div').remove()
